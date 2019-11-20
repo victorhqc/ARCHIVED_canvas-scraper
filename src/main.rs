@@ -7,6 +7,7 @@ use clap::{
 
 use dotenv::dotenv;
 use reqwest::Client;
+use reqwest::header::{HeaderMap, HeaderValue, COOKIE};
 
 fn main() {
     pretty_env_logger::init();
@@ -19,7 +20,13 @@ fn main() {
             let user = dotenv!("CANVAS_USER");
             let password = dotenv!("CANVAS_PASSWORD");
             let authenticity_token = dotenv!("CANVAS_AUTHENTICITY_TOKEN");
+            let csrf_token = dotenv!("CSRF_TOKEN");
+
+            println!("CSRF_TOKEN: {}", csrf_token);
             println!("Log in with: {}", user);
+
+            let mut headers = HeaderMap::new();
+            headers.insert(COOKIE, HeaderValue::from_static(csrf_token));
 
             let mut data: FormData = Vec::new();
             data.push(("authenticity_token", authenticity_token));
@@ -29,12 +36,14 @@ fn main() {
 
             let res = Client::new()
                 .post("https://micampus.unir.net/login/canvas")
+                .headers(headers)
                 .form(&data)
                 .send()
                 .unwrap();
 
             println!("Status: {}", res.status());
             println!("Headers:\n{:?}", res.headers());
+            // println!("Body:\n{:?}", res.text().unwrap());
         }
         _ => {
             matches.usage(); // but unreachable

@@ -31,7 +31,13 @@ herramientas como Pandoc y LateX.
 
 ### Ejecución
 
-
 ```sh
 cargo run
+
+cargo run login
+
+cargo run login -- --help
+
+## Debug mode
+CARGO_LOG=canvas-scraper=debug cargo run
 ```
