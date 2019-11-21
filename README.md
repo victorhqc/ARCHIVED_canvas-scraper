@@ -2,6 +2,16 @@
 
 Web Scraper para la plataforma de educación "Canvas"
 
+## UPDATE:
+
+Canvas necesita Javascript para funcionar. Esto quiere decir que Rust no es un buen candidato para
+solucionar el problema de scraping. Para esto se va a a necesitar una de dos opciones:
+
+1. Utilizar un browser en headless mode.
+2. Utilizar pupeteer.
+
+En cualquier caso, la mejor opción a utilizar es Node.js
+
 ## Motivación
 
 La plataforma "Canvas" es una herramienta de educación utilizada por la Universidad de la Rioja
