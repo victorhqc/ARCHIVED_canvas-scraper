@@ -22,7 +22,6 @@ fn main() {
             let authenticity_token = dotenv!("CANVAS_AUTHENTICITY_TOKEN");
             let csrf_token = dotenv!("CSRF_TOKEN");
 
-            println!("CSRF_TOKEN: {}", csrf_token);
             println!("Log in with: {}", user);
 
             let mut headers = HeaderMap::new();
@@ -34,7 +33,8 @@ fn main() {
             data.push(("pseudonym_session[password]", password));
             data.push(("pseudonym_session[remember_me]", "1"));
 
-            let res = Client::new()
+            let client = Client::builder().cookie_store(true).build().unwrap();
+            let res = client
                 .post("https://micampus.unir.net/login/canvas")
                 .headers(headers)
                 .form(&data)
@@ -43,7 +43,6 @@ fn main() {
 
             println!("Status: {}", res.status());
             println!("Headers:\n{:?}", res.headers());
-            // println!("Body:\n{:?}", res.text().unwrap());
         }
         _ => {
             matches.usage(); // but unreachable
