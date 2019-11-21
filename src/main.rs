@@ -2,16 +2,16 @@
 extern crate dotenv_codegen;
 
 use clap::{
-    crate_authors, crate_description, crate_name, crate_version, App, AppSettings, SubCommand,
+    crate_authors, crate_description, crate_name, crate_version, App, AppSettings, Arg, SubCommand,
 };
 
 use dotenv::dotenv;
-use reqwest::{StatusCode};
-use reqwest::r#async::{Client, Decoder};
-use reqwest::header::{HeaderMap, HeaderValue, COOKIE};
-use futures::{Future, Stream};
-use std::mem;
 use futures::future::*;
+use futures::{Future, Stream};
+use reqwest::header::{HeaderMap, HeaderValue, COOKIE};
+use reqwest::r#async::{Client, Decoder};
+use reqwest::StatusCode;
+use std::mem;
 
 fn main() {
     pretty_env_logger::init();
@@ -26,13 +26,19 @@ fn main() {
                 login(&client)
             }));
         }
+        (CMD_PARSE_SUBJECT, Some(matches)) => {
+            let url = matches.value_of(ARG_PARSE_SUBJECT_URL).unwrap();
+            let format = matches.value_of(ARG_PARSE_FORMAT).unwrap();
+            println!("URL: {}", url);
+            println!("FORMAT: {}", format);
+        }
         _ => {
             matches.usage(); // but unreachable
         }
     }
 }
 
-fn login(client: &Client) -> impl Future<Item=(), Error=()> {
+fn login(client: &Client) -> impl Future<Item = (), Error = ()> {
     let user = dotenv!("CANVAS_USER");
     let password = dotenv!("CANVAS_PASSWORD");
     let authenticity_token = dotenv!("CANVAS_AUTHENTICITY_TOKEN");
@@ -67,10 +73,13 @@ fn login(client: &Client) -> impl Future<Item=(), Error=()> {
         .map(|body| {
             println!("{:?}", body);
         })
-
 }
 
 const CMD_LOGIN: &str = "login";
+
+const CMD_PARSE_SUBJECT: &str = "parse-subject";
+const ARG_PARSE_FORMAT: &str = "format";
+const ARG_PARSE_SUBJECT_URL: &str = "url";
 
 fn build_app<'a>() -> App<'a, 'a> {
     App::new(crate_name!())
@@ -79,6 +88,27 @@ fn build_app<'a>() -> App<'a, 'a> {
         .about(crate_description!())
         .setting(AppSettings::SubcommandRequired)
         .subcommand(SubCommand::with_name(CMD_LOGIN).about("Login to Canvas"))
+        .subcommand(
+            SubCommand::with_name(CMD_PARSE_SUBJECT)
+                .about("Parse course's subject")
+                .arg(
+                    Arg::with_name(ARG_PARSE_SUBJECT_URL)
+                        .help("Url where subject lives")
+                        .long(ARG_PARSE_SUBJECT_URL)
+                        .short("u")
+                        .required(true)
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::with_name(ARG_PARSE_FORMAT)
+                        .help("Format to parse it to")
+                        .long(ARG_PARSE_FORMAT)
+                        .short("f")
+                        .default_value("markdown")
+                        .required(false)
+                        .takes_value(true),
+                ),
+        )
 }
 
 type FormData = Vec<(&'static str, &'static str)>;
