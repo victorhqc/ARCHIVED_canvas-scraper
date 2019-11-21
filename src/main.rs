@@ -11,6 +11,7 @@ use futures::{Future, Stream};
 use reqwest::header::{HeaderMap, HeaderValue, COOKIE};
 use reqwest::r#async::{Client, Decoder};
 use reqwest::StatusCode;
+use select::{document::Document, predicate::Name};
 use std::mem;
 
 fn main() {
@@ -36,6 +37,26 @@ fn main() {
             matches.usage(); // but unreachable
         }
     }
+}
+
+fn scrap_course(client: &Client, url: &str) -> impl Future<Item = (), Error = ()> {
+    client
+        .get(url)
+        .send()
+        .and_then(|mut res| {
+            assert_eq!(res.status(), StatusCode::OK);
+
+            println!("Status: {}", res.status());
+            println!("Headers:\n{:?}", res.headers());
+
+            let body = mem::replace(res.body_mut(), Decoder::empty());
+            body.concat2()
+        })
+        .map_err(|err| println!("Request error: {}", err))
+        .map(|mut body| {
+            Document::from_read(body.as_ref())
+                .unwrap();
+        })
 }
 
 fn login(client: &Client) -> impl Future<Item = (), Error = ()> {
